@@ -1,0 +1,135 @@
+Intention-to-treat (ITT) analysis is a way of analyzing results in clinical trials.
+In an ITT analysis, participants are analyzed in the groups they were originally assigned to, even if they:
+
+- didn’t follow the treatment exactly,
+
+- stopped the treatment early,
+
+- switched treatments, or
+
+- dropped out.
+
+Why researchers use it:
+
+- It preserves the benefits of randomization
+
+- It reflects real-world behavior (people don’t always follow treatments perfectly)
+
+- It reduces bias that could make a treatment look better than it really is
+
+Simple example:
+If 100 people are randomized to a new drug and 20 stop taking it, all 100 are still analyzed as part of the drug group, not removed or reassigned.
+
+Contrast with other analyses:
+
+Per-protocol analysis: Includes only participants who followed the study rules exactly
+
+As-treated analysis: Analyzes participants based on what they actually received
+
+Bottom line:
+👉 Intention-to-treat asks: “What is the effect of assigning this treatment?”
+👉 Per-protocol asks: “What is the effect of actually taking this treatment as planned?”
+
+
+| Analysis type      | Grouping based on   | Main risk                     |
+| ------------------ | ------------------- | ----------------------------- |
+| Intention-to-treat | Original assignment | Dilutes effect (but unbiased) |
+| Per-protocol       | Followed rules      | Selection bias                |
+| As-treated         | Actual treatment    | Loses randomization           |
+
+
+
+Per-protocol (PP) analysis looks at only the participants who followed the study protocol as planned.
+
+In a per-protocol analysis, researchers exclude participants who:
+
+- didn’t take the assigned treatment,
+
+- stopped early,
+
+- switched groups, or
+
+- had major protocol violations.
+
+Only the “ideal compliers” are analyzed.
+
+
+Simple example
+100 assigned to Drug A
+→ 70 took Drug A correctly → analyzed
+
+100 assigned to Placebo
+→ 85 took placebo correctly → analyzed
+
+
+So the analysis compares 70 vs 85, not the original 100 vs 100.
+
+
+Why use per-protocol?
+
+ - Shows the biological efficacy of a treatment
+
+Answers: “Does the treatment work when taken exactly as intended?”
+
+Main drawback (important ⚠️)
+
+-Breaks randomization
+
+-Introduces selection bias
+(people who adhere are often healthier or more motivated)
+
+That’s why PP results can overestimate benefit.
+
+| Feature                 | Intention-to-treat  | Per-protocol               |
+| ----------------------- | ------------------- | -------------------------- |
+| Who is analyzed         | Everyone randomized | Only adherent participants |
+| Preserves randomization | ✅ Yes               | ❌ No                       |
+| Real-world relevance    | High                | Lower                      |
+| Risk of bias            | Low                 | Higher                     |
+| Typical use             | Primary analysis    | Secondary/sensitivity      |
+
+
+As-treated analysis analyzes participants based on what treatment they actually received, not what they were originally assigned.
+
+If someone was randomized to Drug A but:
+
+- never took it, or
+
+- switched to placebo,
+
+they are analyzed in the placebo group (or vice versa).
+
+Simple example
+Randomized:
+100 → Drug A
+100 → Placebo
+
+What actually happened:
+- 20 from Drug A switched to Placebo
+- 10 from Placebo switched to Drug A
+
+As-treated analysis:
+- Drug A group = 90
+- Placebo group = 110
+
+Why use as-treated?
+
+Reflects the effects of the treatment actually received
+
+Answers: “What happened to people who took this treatment?”
+
+Major limitation ⚠️
+
+- Destroys randomization
+
+- Strong risk of confounding and bias
+(people who switch treatments are often different in important ways)
+
+Because of this, as-treated results can be misleading.
+
+
+| Analysis type      | Grouped by          | Keeps randomization? | Bias risk |
+| ------------------ | ------------------- | -------------------- | --------- |
+| Intention-to-treat | Original assignment | ✅ Yes                | Low       |
+| Per-protocol       | Followed protocol   | ❌ No                 | Moderate  |
+| As-treated         | Treatment received  | ❌ No                 | High      |

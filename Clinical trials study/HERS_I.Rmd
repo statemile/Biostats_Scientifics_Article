@@ -1,0 +1,201 @@
+---
+title: "Heart and Estrogen/progestin Replacement Study (HERS)"
+output: pdf_document
+date: "2026-01-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(haven)  # to import sas dataset
+library(dplyr)
+library(ggplot2)
+theme_set(
+  theme_bw() 
+  )
+library(gtsummary)
+library(gt)
+library(Hmisc)
+library(skimr)
+library(biostats)
+library(tableone)
+
+
+library(summarytools)
+library(DescTools)
+library(smd) # Compute Standardized Mean Differences
+```
+
+# Aims
+
+In this file, I will be reproducing all tables, figures and models of Hulley et al (1998) paper with the data at my disposal.
+
+Here are the variables included in the original paper :
+- Demographics (Age, White, Education)
+
+- CHD risk factors (Current smoker, Diabetes on oral medication or insulin, Systolic blood pressure, Diastolic blood pressure, LDL cholesterol, HDL cholesterol, Triglyceride, Time since last menstrual period, Body mass index, Exercise >3 times weekly, No. of drinks per week, General health poor or fair, Postmenopausal estrogen use)
+
+- CHD manifestations (Signs of congestive heart failure, Q-wawe myocardial infarction, Percutaneous coronary revascularization, Coronary artery bypass graft surgery)
+Medication use (Aspirin, \beta-Blockers, Lipid-lowering medications, Calcium channel blockers, Angiotensin-converting enzyme inhibitors, Diuretics, Multivitamins)
+
+
+```{r}
+# import data
+hersdata <- read_sas("hulley1998_RCT_HERS_I/hersdata.sas7bdat")
+hersdata_xlsx <- read_excel("hulley1998_RCT_HERS_I/hersdata.xls")
+
+
+# declare proper variable type
+## non-ordered categorical variables
+cat_vars <- c("HT", "raceth","nonwhite", "smoking", "drinkany", "exercise",
+              "poorfair", "medcond", "htnmeds", "statins", "diabetes", 
+              "dmpills", "insulin")
+
+## ordered categorical variables
+o_cat_vars <- c("physact", "globrat")
+
+for (var in cat_vars){
+  hersdata[[var]] <- as.factor(hersdata[[var]])
+}
+
+hersdata <- hersdata %>%
+  mutate(across(all_of(o_cat_vars), as.ordered))
+
+hersdata_xlsx <- hersdata_xlsx %>%
+  mutate(across(all_of(cat_vars), as.factor))
+
+hersdata_xlsx$physact <- factor(hersdata_xlsx$physact,
+                           levels= c("much less active","somewhat less active",
+                                     "about as active","somewhat more active",
+                                     "much more active"),
+                           ordered=TRUE)
+
+hersdata_xlsx$globrat <- factor(hersdata_xlsx$globrat,
+                           levels= c("poor","fair","good",
+                                     "very good","excellent"),
+                           ordered=TRUE)
+
+
+
+
+# a quick summary
+summary_table(hersdata)
+```
+
+
+```{r}
+summary_table(hersdata_xlsx)
+```
+
+In the dataset we are using here, we only have these variables :
+
+- Demographics (Age, White)
+
+- CHD risk factors (Current smoker, Diabetes on oral medication or insulin, Systolic blood pressure, Diastolic blood pressure, LDL cholesterol, HDL cholesterol, Triglyceride, Body mass index, Exercise >3 times weekly, General health poor or fair)
+
+We will not add p-values in our table because, according to CONSORT (gold standard for RCTs)
+"Significance testing of baseline differences is not recommended.” (https://www.consort-spirit.org/item25-baselinedata)
+
+Table one purpose is to:
+
+- Describe the study population
+
+- Show that randomization was implemented
+
+- Provide clinical context
+
+It is not meant to:
+
+- Test hypotheses
+
+- Prove balance
+
+- Validate randomization statistically
+
+Randomization already guarantees balance in expectation.
+Therefore, p-values in Table 1 of an RCT are not considered reliable or appropriate.
+
+
+```{r}
+# Table 1 : Baseline characteristics of HERS Participants (n=2763)  by treatment group
+
+hersdata_xlsx$BMI27 <- ifelse(hersdata_xlsx$BMI>27, "yes", "no")
+hersdata_xlsx$BMI27 <- as.factor(hersdata_xlsx$BMI27)
+
+hersdata_xlsx$white <- ifelse(hersdata_xlsx$nonwhite=="no", "yes", "no")
+
+tab1 <- hersdata_xlsx %>% 
+  subset(select=c(HT, age, white, smoking, diabetes, SBP, DBP, LDL,
+                  HDL,TG, BMI27,exercise, poorfair)) %>% 
+  tbl_summary(by=HT,
+              type = list(white ~ "categorical", 
+                          smoking ~ "categorical", 
+                          diabetes ~ "categorical", 
+                          exercise ~ "categorical",
+                          poorfair ~ "categorical", 
+                          BMI27 ~ "categorical"), 
+              label = list(age ~ "Age (years)",
+                           white ~ "White",
+                           smoking ~ "Current smoker",
+                           diabetes ~ "Diabetes on oral medication or insulin",
+                           SBP ~ "Systolic blood pressure mm Hg",
+                           DBP ~ "Diastolic blood pressure mm Hg",
+                           LDL ~ "LDL cholesterol mg/dL",
+                           HDL ~ "HDL cholesterol mg/dL",
+                           TG ~ "Triglyceride mg/dL",
+                           BMI27 ~ "Body mass index >27 kg/m²",
+                           exercise ~ "Exercise >3 times weekly",
+                           poorfair ~ "General health poor or fair"),
+              digits = list(all_categorical()~c(0,1),all_continuous() ~ 1),
+              statistic = list(all_continuous() ~ c("{mean} ({sd})"),
+                               all_categorical() ~ c("{p}%")),
+              missing = "no",
+              missing_text = "Missing") %>%
+  modify_header(label = "**Characteristics**", 
+                stat_1 = "**Estrogen-Progestin** \n \n (N={n})",
+                stat_2 = "**Placebo** \n \n (N={n})") %>%
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment group**") %>%
+  modify_caption("**Table 1 : Baseline characteristics of HERS Participants 
+                 (n=2763)  by treatment group**")%>%
+  add_difference(all_categorical() ~ "smd") %>% # to add Standardized Mean Differences
+  modify_column_hide(columns = c(p.value, conf.low,
+                                 conf.high))  # hide the CI and p-value
+
+tab1
+```
+
+
+Baseline balance between groups was assessed using the standardized mean difference (SMD), which is independent of sample size.
+For continuous variables, the SMD was calculated as:
+$$ \mathrm{SMD} = \frac{\bar{X}_1 - \bar{X}_2} {\sqrt{\frac{s_1^2 + s_2^2}{2}}}$$
+where $\bar{X}_1$ and $\bar{X}_2$ denote the group means, and $s_1$ and $s_2$ denote the corresponding standard deviations.
+
+
+For binary variables, the SMD was calculated as:
+$$ \mathrm{SMD} = \frac{p_1 - p_2} {\sqrt{\frac{p_1(1 - p_1) + p_2(1 - p_2)}{2}}} $$
+where $p_1$ and $p_2$ denote the group-specific proportions.
+
+|            |                   |
+| ---------- | ----------------- |
+| SMD < 0.10 | Excellent balance |
+| 0.10–0.20  | Minor imbalance   |
+| > 0.20     | Potential concern |
+
+
+
+
+
+
+```{r}
+# using tableone library
+print(CreateTableOne(
+  vars = c("HT", "age", "white", "smoking", "diabetes", "SBP", "DBP",
+           "LDL", "HDL", "TG", "BMI27", "exercise", "poorfair"),
+  strata = "HT",
+  data = hersdata_xlsx,
+  test = FALSE, smd = TRUE
+), explain =  TRUE, showAllLevels=TRUE, smd=TRUE,formatOptions=list(scientific = FALSE))
+```
+
+
+
